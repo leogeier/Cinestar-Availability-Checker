@@ -2,7 +2,14 @@ import requests
 import sys
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-if __name__ == "__main__":
+NOT_AVAILABLE_INDICATOR = 'Dieser Film befindet sich aktuell nicht im Programm.'
+
+def querySite(url):
+    r = requests.get(url)
+    if NOT_AVAILABLE_INDICATOR not in r.text:
+        print("alarm")
+
+if __name__ == '__main__':
     if len(sys.argv) < 3:
         print("Usage: [URL] [Interval in seconds]")
         sys.exit()
@@ -13,5 +20,5 @@ if __name__ == "__main__":
 
     # Set up scheduler
     scheduler = BlockingScheduler()
-    scheduler.add_job(lambda: print(url), 'interval', seconds=interval)
+    scheduler.add_job(querySite, 'interval', seconds=interval, args=[url])
     scheduler.start()
