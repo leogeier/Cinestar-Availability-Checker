@@ -6,11 +6,19 @@ from telegram import Bot
 import sqlite3
 
 NOT_AVAILABLE_INDICATOR = 'Dieser Film befindet sich aktuell nicht im Programm.'
+DB_FILE = 'database.sqlite'
 
-def querySite(url):
+def querySite(url, name, bot):
     r = requests.get(url)
     if NOT_AVAILABLE_INDICATOR not in r.text:
-        print("alarm")
+        # Warn all groups
+        db = sqlite3.connect(DB_FILE)
+        c = db.cursor()
+        c.execute("""SELECT chat_id
+            FROM entry""")
+        for result in c.fetchall():
+            text = "🚨🚨🚨 '{}' TICKETS ARE AVAILIBLE! 🚨🚨🚨".format(name)
+            bot.send_message(chat_id=result[0], text=text)
 
 def id_in_db(db, chat_id):
     c = db.cursor()
@@ -22,7 +30,7 @@ def id_in_db(db, chat_id):
 
 def registerGroup(bot, update):
     try:
-        db = sqlite3.connect('database.sqlite')
+        db = sqlite3.connect(DB_FILE)
         chat_id = update.message.chat_id
         if not id_in_db(db, chat_id):
             db.execute("""INSERT INTO entry
@@ -35,7 +43,7 @@ def registerGroup(bot, update):
 
 def unregisterGroup(bot, update):
     try:
-        db = sqlite3.connect('database.sqlite')
+        db = sqlite3.connect(DB_FILE)
         chat_id = update.message.chat_id
         if id_in_db(db, chat_id):
             db.execute("""DELETE FROM entry
@@ -56,18 +64,20 @@ if __name__ == '__main__':
     interval = int(sys.argv[2])
     name = sys.argv[3]
 
-    # Set up scheduler
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(querySite, 'interval', seconds=interval, args=[url])
-    scheduler.start()
-
     # Set up bot
     with open('.bot-token.txt') as f:
         token = f.read()
         updater = Updater(token=token)
+        bot = Bot(token=token)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler('register', registerGroup))
     dispatcher.add_handler(CommandHandler('unregister', unregisterGroup))
 
+    # Set up scheduler
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(querySite, 'interval', seconds=interval, args=[url, name, bot])
+    scheduler.start()
+
+    print("Start polling...")
     updater.start_polling()
     updater.idle()
