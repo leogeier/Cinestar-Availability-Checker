@@ -10,13 +10,14 @@ def querySite(url):
         print("alarm")
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: [URL] [Interval in seconds]")
+    if len(sys.argv) < 4:
+        print("Usage: [URL] [Interval in seconds] [name]")
         sys.exit()
 
     # Extract arguments
     url = sys.argv[1]
     interval = int(sys.argv[2])
+    name = sys.argv[3]
 
     # Set up scheduler
     scheduler = BlockingScheduler()
