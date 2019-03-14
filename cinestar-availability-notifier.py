@@ -10,14 +10,21 @@ DB_FILE = 'database.sqlite'
 
 def querySite(url, name, bot):
     r = requests.get(url)
-    if NOT_AVAILABLE_INDICATOR not in r.text:
+
+    sendMessage = NOT_AVAILABLE_INDICATOR not in r.text
+    text = "🚨🚨🚨 '{}' TICKETS ARE AVAILIBLE! 🚨🚨🚨".format(name)
+    if not r.status_code == requests.codes.ok:
+        text = "ATTENTION: Status code is not OK!"
+        sendMessage = True
+
+    if sendMessage:
+        print("Sending message...")
         # Warn all groups
         db = sqlite3.connect(DB_FILE)
         c = db.cursor()
         c.execute("""SELECT chat_id
             FROM entry""")
         for result in c.fetchall():
-            text = "🚨🚨🚨 '{}' TICKETS ARE AVAILIBLE! 🚨🚨🚨".format(name)
             bot.send_message(chat_id=result[0], text=text)
 
 def id_in_db(db, chat_id):
