@@ -5,13 +5,14 @@ from telegram.ext import Updater, CommandHandler
 from telegram import Bot
 import sqlite3
 
-NOT_AVAILABLE_INDICATOR = 'Dieser Film befindet sich aktuell nicht im Programm.'
+NOT_AVAILABLE_INDICATOR_1 = 'Dieser Film befindet sich aktuell nicht im Programm.'
+NOT_AVAILABLE_INDICATOR_2 = 'Benachrichtigung beim Filmstart'
 DB_FILE = 'database.sqlite'
 
 def querySite(url, name, bot):
     r = requests.get(url)
 
-    sendMessage = NOT_AVAILABLE_INDICATOR not in r.text
+    sendMessage = NOT_AVAILABLE_INDICATOR_1 not in r.text and NOT_AVAILABLE_INDICATOR_2 not in r.text
     text = "🚨🚨🚨 '{}' TICKETS ARE AVAILIBLE! 🚨🚨🚨".format(name)
     if not r.status_code == requests.codes.ok:
         text = "ATTENTION: Status code is not OK!"
